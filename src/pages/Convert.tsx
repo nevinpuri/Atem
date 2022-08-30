@@ -1,25 +1,29 @@
 import { useParams } from "react-router-dom";
 import { Buffer } from "buffer";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { message } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
+import debounce from "lodash.debounce";
 
 export default function Convert() {
   const params = useParams();
+
+  const convertVideo = async () => {
+    console.log("converting");
+    if (!params.filePath) {
+      message("No file");
+      return;
+    }
+
+    const filePath = Buffer.from(params.filePath, "base64").toString("binary");
+
+    await invoke("convert_video", { input: filePath, targetSize: 7.8 });
+    message("done");
+  };
+
+  const debouncedEventHandler = useMemo(() => debounce(convertVideo, 300), []);
   useEffect(() => {
-    const convertVideo = async () => {
-      if (!params.filePath) {
-        message("No file");
-        return;
-      }
-
-      const filePath = Buffer.from(params.filePath, "base64").toString(
-        "binary"
-      );
-
-      await invoke("convert_video", { input: filePath, target_size: 7.8 });
-      message("done");
-    };
+    debouncedEventHandler();
   }, []);
   return (
     <div>

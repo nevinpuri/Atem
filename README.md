@@ -1,5 +1,12 @@
 # Tauri + React + Typescript
 
+## TODO
+
+- convert videos to 720p
+- support for multiple files
+- progress bar (maybe)
+- back button
+
 This template should help get you started developing with Tauri, React and Typescript in Vite.
 
 ## Recommended IDE Setup

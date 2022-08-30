@@ -1,11 +1,22 @@
 import { open, message } from "@tauri-apps/api/dialog";
 import { UnlistenFn, listen } from "@tauri-apps/api/event";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Buffer } from "buffer";
+import debounce from "lodash.debounce";
 
 export default function Menu() {
   const navigate = useNavigate();
+
+  const handleNavigate = (filePath: string) => {
+    const encode = Buffer.from(filePath, "binary").toString("base64");
+    navigate(`/convert/${encode}`);
+  };
+
+  const debouncedEventHandler = useMemo(
+    () => debounce(handleNavigate, 300),
+    []
+  );
   useEffect(() => {
     let unlisten: UnlistenFn;
     const startFileDrop = async () => {
@@ -20,7 +31,9 @@ export default function Menu() {
         }
 
         console.log(event.payload[0]);
-        handleNavigate(event.payload[0]);
+        // setPayload(event.payload[0]);
+        debouncedEventHandler(event.payload[0]);
+        // handleNavigate(event.payload[0]);
       });
     };
 
@@ -51,13 +64,10 @@ export default function Menu() {
       return;
     }
 
-    handleNavigate(selected);
+    debouncedEventHandler(selected);
+    // handleNavigate(selected);
   };
 
-  const handleNavigate = (filePath: string) => {
-    const encode = Buffer.from(filePath, "binary").toString("base64");
-    navigate(`/convert/${encode}`);
-  };
   return (
     <div
       onClick={fileClick}
