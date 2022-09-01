@@ -1,5 +1,29 @@
-use std::process::Command;
+use std::ffi::OsStr;
+use std::{process::Command, path::Path};
 use std::str::from_utf8;
+use std::env;
+use directories::{self, UserDirs};
+
+pub struct FileInfo {
+    pub file_path: String,
+    pub output_dir: String
+}
+
+impl FileInfo {
+    pub fn new(file_path: String, output_dir: String) -> Self {
+        FileInfo {
+            file_path,
+            output_dir
+        }
+    }
+
+    pub fn empty() -> Self {
+        FileInfo {
+            file_path: "".to_string(),
+            output_dir: "".to_string()
+        }
+    }
+}
 
 fn remove_whitespace(s: &str) -> String {
     s.chars().filter(|c| !c.is_whitespace()).collect()
@@ -81,10 +105,10 @@ pub fn get_target_video_rate(size: f32, duration: f32, audio_rate: f32) -> f32 {
 }
 
 pub fn convert_first(input: &str, video_bitrate: f32, unix: bool) {
-    let nul = if unix {
-        "/dev/null"
-    } else {
+    let nul = if env::consts::OS == "windows" {
         "nul"
+    } else {
+        "/dev/null"
     };
 
     let output = Command::new("ffmpeg")
@@ -121,21 +145,50 @@ pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: 
     .stdout;
 }
 
-pub fn format_input(input: &str) -> String {
-    let mut split: Vec<&str> = input.split(".").collect();
-    split.pop(); // remove file extension
+pub fn format_input(input: &str) -> FileInfo {
+    let file_path = Path::new(input);
+    let user_dirs = UserDirs::new().expect("Failed to find user dirs");
 
-    let len = &split.len();
+    let vid_dir = match user_dirs.video_dir() {
+        Some(vid_dir) => vid_dir.as_os_str().to_str().unwrap(),
+        _ => {
+            // if video dir fails, use the parent dir of the clip
+            match file_path.parent() {
+                Some(dir) => {
+                    dir.as_os_str().to_str().unwrap()
+                },
+                // use current dir
+                _ => "."
+            }
+        }
+    };
 
-    let file_name = split[len - 1];
+    let file_name = match file_path.file_stem() {
+        Some(name) => {
+            name.to_str().unwrap()
+        },
+        _ => {
+            panic!("No file name")
+        }
+    };
 
-    let formatted = format!("{}-8m", file_name);
+    let file_out = format!("{}-8m.mp4", file_name);
+    let output_path = Path::new(vid_dir).join(file_out).as_os_str().to_str().unwrap().to_string();
 
-    split[len - 1] = &formatted;
+    // let mut split: Vec<&str> = input.split(".").collect();
+    // split.pop(); // remove file extension
 
-    let joined = split.join(".") + ".mp4";
+    // let len = &split.len();
 
+    // let file_name = split[len - 1];
 
-    // println!("{}", &joined);
-    joined
+    // let formatted = format!("{}-8m", file_name);
+
+    // split[len - 1] = &formatted;
+
+    // let joined = split.join(".") + ".mp4";
+
+    FileInfo::new(output_path, vid_dir.to_string())
+    // output_path
+
 }

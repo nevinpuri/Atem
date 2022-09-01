@@ -29,8 +29,10 @@ export default function Convert() {
 
       const outPath = await invoke("convert_video", {
         input: filePath,
-        targetSize: 7.8,
+        targetSize: 7.5,
       });
+
+      console.log(outPath);
 
       setConvertStatus("Successfully compressed");
       return router(`/success/${Buffer.from("/home/nevin/Desktop/")}`);
@@ -62,7 +64,7 @@ export default function Convert() {
         x="0px"
         y="0px"
         viewBox="0 0 100 100"
-        enable-background="new 0 0 0 0"
+        enableBackground="new 0 0 0 0"
         xmlSpace="preserve"
       >
         <path
