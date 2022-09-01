@@ -3,7 +3,9 @@ use std::{process::Command, path::Path};
 use std::str::from_utf8;
 use std::env;
 use directories::{self, UserDirs};
+use serde::{Serialize, Deserialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct FileInfo {
     pub file_path: String,
     pub output_dir: String

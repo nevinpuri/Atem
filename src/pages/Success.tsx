@@ -1,5 +1,7 @@
+import { invoke, shell } from "@tauri-apps/api";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { Buffer } from "buffer";
 
 export default function Success() {
   const params = useParams();
@@ -16,6 +18,20 @@ export default function Success() {
       Buffer.from(params.outputFolder, "base64").toString("binary")
     );
   }, []);
+
+  const openOutputFolder = async () => {
+    if (!params.outputFolder) {
+      return;
+    }
+
+    console.log(Buffer.from(params.outputFolder, "base64").toString("binary"));
+
+    if (!outputFolder) {
+      return;
+    }
+
+    await invoke("open_file_explorer", { path: outputFolder });
+  };
 
   const menu = () => {
     return router("menu");
@@ -34,7 +50,10 @@ export default function Success() {
         >
           Compress Another Video
         </a>
-        <button className="bg-gray-800 text-gray-300 px-2 py-1.5">
+        <button
+          onClick={openOutputFolder}
+          className="bg-gray-800 text-gray-300 px-2 py-1.5"
+        >
           Open Video Folder
         </button>
       </div>

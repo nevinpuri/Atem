@@ -1,5 +1,6 @@
 use compressor::ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo};
-use directories::UserDirs;
+use tauri::{api::{process::Command, dialog::message}, Manager};
+use std::env;
 
 pub mod ffmpeg;
 
@@ -7,6 +8,31 @@ pub mod ffmpeg;
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+
+#[tauri::command(async)]
+fn open_file_explorer(path: &str, window: tauri::Window) {
+    let label = window.label();
+    let parent_window = window.get_window(label).unwrap();
+    match env::consts::OS {
+        "windows" => {
+            Command::new("explorer")
+            .args(["/select,", path]) // The comma after select is not a typo
+            .spawn()
+            .unwrap();
+        },
+        "macos" => {
+            Command::new( "open" )
+            .args(["-R", path]) // i don't have a mac so not 100% sure
+            .spawn()
+            .unwrap();
+        },
+        _ => {
+            tauri::async_runtime::spawn(async move {
+                message(Some(&parent_window), "Unsupported OS", "Opening a file browser is unsupported on linux");
+            });
+        }
+    }
+}
 
 #[tauri::command(async)]
 fn convert_video(input: &str, target_size: f32) -> FileInfo {
@@ -35,6 +61,7 @@ fn greet(name: &str) -> String {
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![open_file_explorer])
         .invoke_handler(tauri::generate_handler![convert_video])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

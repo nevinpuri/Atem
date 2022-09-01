@@ -27,20 +27,27 @@ export default function Convert() {
         "binary"
       );
 
-      const outPath = await invoke("convert_video", {
+      const out: any = await invoke("convert_video", {
         input: filePath,
         targetSize: 7.5,
       });
 
-      console.log(outPath);
+      if (!out.output_dir) {
+        return;
+      }
+
+      console.log(out);
 
       setConvertStatus("Successfully compressed");
-      return router(`/success/${Buffer.from("/home/nevin/Desktop/")}`);
+      return router(
+        `/success/${Buffer.from(out.output_dir, "binary").toString("base64")}`
+      );
       // open folder
-    } catch (err) {
+    } catch (err: any) {
       setConvertStatus(
         "An unexpected error has occured. Check the console for details."
       );
+      console.log(err.toString());
     }
   };
 
