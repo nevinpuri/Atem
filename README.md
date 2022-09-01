@@ -1,4 +1,6 @@
-# Tauri + React + Typescript
+# 8m
+
+A program which compresses your discord file
 
 ## TODO
 

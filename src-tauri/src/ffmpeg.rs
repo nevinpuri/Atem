@@ -120,3 +120,22 @@ pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: 
     .expect("Failed first conversion")
     .stdout;
 }
+
+pub fn format_input(input: &str) -> String {
+    let mut split: Vec<&str> = input.split(".").collect();
+    split.pop(); // remove file extension
+
+    let len = &split.len();
+
+    let file_name = split[len - 1];
+
+    let formatted = format!("{}-8m", file_name);
+
+    split[len - 1] = &formatted;
+
+    let joined = split.join(".") + ".mp4";
+
+
+    // println!("{}", &joined);
+    joined
+}

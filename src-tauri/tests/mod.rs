@@ -36,3 +36,10 @@ fn test_convert() {
     // write to file and reread that file every second
     println!("done converting");
 }
+
+
+#[test]
+fn test_file_format() {
+    let input = "/home/nevin/Desktop/video3.mkv";
+    assert_eq!(format_input(input), "/home/nevin/Desktop/video3-8m.mp4");
+}

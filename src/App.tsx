@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import Menu from "./pages/Menu";
 import Convert from "./pages/Convert";
 import { message } from "@tauri-apps/api/dialog";
+import Success from "./pages/Success";
 
 function App() {
   const [video, setVideo] = useState<string>();
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Menu />} />
           <Route path="/convert/:filePath" element={<Convert />} />
+          <Route path="/success/:outputFolder" element={<Success />} />
         </Routes>
       </BrowserRouter>
     </div>

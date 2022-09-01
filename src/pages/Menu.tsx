@@ -20,7 +20,6 @@ export default function Menu() {
   useEffect(() => {
     let unlisten: UnlistenFn;
     const startFileDrop = async () => {
-      console.log("hello");
       unlisten = await listen("tauri://file-drop", (event: any) => {
         if (!event.payload) {
           return;
@@ -31,9 +30,7 @@ export default function Menu() {
         }
 
         console.log(event.payload[0]);
-        // setPayload(event.payload[0]);
         debouncedEventHandler(event.payload[0]);
-        // handleNavigate(event.payload[0]);
       });
     };
 
@@ -74,7 +71,7 @@ export default function Menu() {
       className="h-screen flex justify-center items-center cursor-pointer"
     >
       <h1 className="text-white text-2xl font-bold text-center">
-        Drag and Drop Files to Compress
+        Drag and Drop Video to Compress
       </h1>
     </div>
   );
