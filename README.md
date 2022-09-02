@@ -1,6 +1,6 @@
 # 8m
 
-A program which compresses your discord file
+A program which compresses your discord videos
 
 ## TODO
 
