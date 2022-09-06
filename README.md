@@ -9,6 +9,10 @@ A program which compresses your discord videos
 - progress bar (maybe)
 - back button
 
+## downloading ffmpeg
+
+the download for ffmpeg is going to be a command which is going to be run from the frontend, it will not be run from the backend
+
 This template should help get you started developing with Tauri, React and Typescript in Vite.
 
 ## Recommended IDE Setup

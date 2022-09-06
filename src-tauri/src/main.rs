@@ -1,8 +1,9 @@
-use compressor::ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo};
+use compressor::ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo, get_ffmpeg_path};
 use tauri::{api::{process::Command, dialog::message}, Manager};
-use std::env;
+use std::{env, path::Path};
 
 pub mod ffmpeg;
+pub mod process;
 
 #[cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
@@ -35,7 +36,10 @@ fn open_file_explorer(path: &str, window: tauri::Window) {
 }
 
 #[tauri::command(async)]
-fn convert_video(input: &str, target_size: f32) -> FileInfo {
+fn convert_video(input: &str, target_size: f32, base_dir: &str) -> FileInfo {
+    let path = Path::new(&base_dir).join("ffmpeg");
+    let ffmpeg_path = get_ffmpeg_path(&path);
+
     let output = format_input(input);
 
     let duration = get_duration(input);

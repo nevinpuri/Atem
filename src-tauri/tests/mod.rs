@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use compressor::ffmpeg::*;
 
 #[test]
@@ -42,4 +44,10 @@ fn test_convert() {
 fn test_file_format() {
     let input = "/home/nevin/Desktop/video3.mkv";
     // assert_eq!(format_input(input), "/home/nevin/Videos/video3-8m.mp4");
+}
+
+#[test]
+fn test_download_ffmpeg() {
+    let path = Path::new("C:\\Users\\Nevin\\AppData\\Roaming\\com.tauri.dev\\ffmpeg\\");
+    download_ffmpeg(path).expect("Failed to download ffmpeg");
 }

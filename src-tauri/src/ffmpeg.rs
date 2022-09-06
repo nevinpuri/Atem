@@ -1,9 +1,13 @@
 use std::ffi::OsStr;
+use std::fs::{create_dir, create_dir_all};
+use std::path::PathBuf;
 use std::{process::Command, path::Path};
 use std::str::from_utf8;
 use std::env;
 use directories::{self, UserDirs};
 use serde::{Serialize, Deserialize};
+
+use crate::process::get_download_link;
 
 #[derive(Serialize, Deserialize)]
 pub struct FileInfo {
@@ -25,6 +29,20 @@ impl FileInfo {
             output_dir: "".to_string()
         }
     }
+}
+
+pub fn download_ffmpeg(path: &Path) -> Result<(), String> {
+    let download_link = get_download_link().expect("Failed to get valid download link");
+    Ok(())
+}
+
+/// downloads ffmpeg and creates the path if needed
+pub fn get_ffmpeg_path(path: &Path) -> &Path {
+    if !path.exists() {
+        create_dir_all(path).expect("Failed to create ffmpeg path");
+    }
+
+    panic!("Not implemented");
 }
 
 fn remove_whitespace(s: &str) -> String {

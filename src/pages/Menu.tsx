@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Buffer } from "buffer";
 import debounce from "lodash.debounce";
+import { appDir } from "@tauri-apps/api/path";
 
 export default function Menu() {
   const [isDrag, setIsDrag] = useState<boolean>(false);
@@ -20,6 +21,10 @@ export default function Menu() {
   );
 
   useEffect(() => {
+    appDir().then((dir) => {
+      console.log(dir);
+    });
+
     let unlisten: UnlistenFn;
     let unlistenFileDrop: UnlistenFn;
     let unlistenFileDropCancelled: UnlistenFn;
