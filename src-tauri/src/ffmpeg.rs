@@ -1,6 +1,6 @@
-use std::ffi::OsStr;
-use std::fs::{create_dir, create_dir_all};
-use std::path::PathBuf;
+use std::fs::{create_dir_all, File};
+use std::io::copy;
+use reqwest::Result;
 use std::{process::Command, path::Path};
 use std::str::from_utf8;
 use std::env;
@@ -31,8 +31,27 @@ impl FileInfo {
     }
 }
 
-pub fn download_ffmpeg(path: &Path) -> Result<(), String> {
-    let download_link = get_download_link().expect("Failed to get valid download link");
+pub async fn download_ffmpeg(path: &Path) -> reqwest::Result<()> {
+    let download_link = get_download_link().expect("Failed to get valid download link").ffmpeg;
+    let response = reqwest::get(download_link).await?;
+
+    let mut dest = {
+        let fname = response
+        .url()
+        .path_segments()
+        .and_then(|segments| segments.last())
+        .and_then(|name| if name.is_empty() {None} else {Some(name)})
+        .unwrap_or("tmp.bin");
+
+        println!("file to download, {}", fname);
+        let fname = path.join(fname);
+        println!("will be located under {:#?}", fname);
+        File::create(fname).expect("Failed to create file")
+    };
+
+    let content = response.text().await?;
+    copy(&mut content.as_bytes(), &mut dest).expect("Failed to copy downloaded bytes to file");
+
     Ok(())
 }
 
