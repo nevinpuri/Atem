@@ -11,6 +11,10 @@ pub mod process;
 )]
 
 #[tauri::command(async)]
+fn setup() {
+}
+
+#[tauri::command(async)]
 fn open_file_explorer(path: &str, window: tauri::Window) {
     let label = window.label();
     let parent_window = window.get_window(label).unwrap();
