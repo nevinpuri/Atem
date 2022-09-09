@@ -1,5 +1,5 @@
-use std::fs::{create_dir_all, File};
-use std::io::copy;
+use std::fs::{create_dir_all, File, self};
+use std::io::{copy, self};
 use reqwest::Result;
 use std::{process::Command, path::Path};
 use std::str::from_utf8;
@@ -31,7 +31,7 @@ impl FileInfo {
     }
 }
 
-pub async fn download_and_extract(path: &Path) -> reqwest::Result<()> {
+pub async fn download_ffmpeg(path: &Path) -> reqwest::Result<File> {
     let download_link = get_download_link().expect("Failed to get valid download link").ffmpeg;
     let response = reqwest::get(download_link).await?;
 
@@ -51,6 +51,44 @@ pub async fn download_and_extract(path: &Path) -> reqwest::Result<()> {
 
     let content = response.text().await?;
     copy(&mut content.as_bytes(), &mut dest).expect("Failed to copy downloaded bytes to file");
+
+    Ok(dest)
+}
+
+// todo: refactor to return io error instead of panic
+pub fn extract_zip(zip_file: File) {
+    let mut archive = zip::ZipArchive::new(zip_file).expect("Failed to open zip archive");
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).expect("Failed to get file at index");
+        let outpath = match file.enclosed_name() {
+            Some(path) => path.to_owned(),
+            None => continue,
+        };
+
+        if (*file.name()).ends_with("/") {
+            fs::create_dir_all(&outpath).expect("Failed to create directory for extracting files");
+        } else {
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(&p).expect("Failed creating directory for file parent");
+                }
+            }
+
+            let mut outfile = fs::File::create(&outpath).unwrap();
+            io::copy(&mut file, &mut outfile).unwrap();
+
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+
+                if let Some(mode) = file.unix_mode() {
+                    fs::set_permissions(&outpath, fs::Permissions::from_mode(mode)).unwrap();
+                }
+            }
+        }
+    }
 
     Ok(())
 }
