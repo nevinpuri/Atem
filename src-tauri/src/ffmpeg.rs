@@ -31,7 +31,7 @@ impl FileInfo {
     }
 }
 
-pub async fn download_ffmpeg(path: &Path) -> reqwest::Result<()> {
+pub async fn download_and_extract(path: &Path) -> reqwest::Result<()> {
     let download_link = get_download_link().expect("Failed to get valid download link").ffmpeg;
     let response = reqwest::get(download_link).await?;
 
