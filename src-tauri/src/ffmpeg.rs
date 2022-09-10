@@ -1,6 +1,6 @@
 use std::fs::{create_dir_all, File, self};
-use std::io::{copy, self};
-use reqwest::Result;
+use std::io::{copy, self, Error};
+use reqwest;
 use std::{process::Command, path::Path};
 use std::str::from_utf8;
 use std::env;
@@ -31,9 +31,10 @@ impl FileInfo {
     }
 }
 
-pub async fn download_ffmpeg(path: &Path) -> reqwest::Result<File> {
-    let download_link = get_download_link().expect("Failed to get valid download link").ffmpeg;
-    let response = reqwest::get(download_link).await?;
+pub async fn download_file(path: &Path, link: &str) -> reqwest::Result<File> {
+    // let download_link = get_download_link()?;
+
+    let response = reqwest::get(link).await?;
 
     let mut dest = {
         let fname = response
@@ -56,22 +57,22 @@ pub async fn download_ffmpeg(path: &Path) -> reqwest::Result<File> {
 }
 
 // todo: refactor to return io error instead of panic
-pub fn extract_zip(zip_file: File) {
+pub fn extract_zip(zip_file: File) -> Result<(), Error> {
     let mut archive = zip::ZipArchive::new(zip_file).expect("Failed to open zip archive");
 
     for i in 0..archive.len() {
-        let mut file = archive.by_index(i).expect("Failed to get file at index");
+        let mut file = archive.by_index(i)?;
         let outpath = match file.enclosed_name() {
             Some(path) => path.to_owned(),
             None => continue,
         };
 
         if (*file.name()).ends_with("/") {
-            fs::create_dir_all(&outpath).expect("Failed to create directory for extracting files");
+            fs::create_dir_all(&outpath)?;
         } else {
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p).expect("Failed creating directory for file parent");
+                    fs::create_dir_all(&p)?;
                 }
             }
 

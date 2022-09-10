@@ -1,4 +1,4 @@
-use compressor::ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo, get_ffmpeg_path, download_ffmpeg, extract_zip};
+use compressor::{ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo, get_ffmpeg_path, extract_zip, download_file}, process::get_download_link};
 use tauri::{api::{process::Command, dialog::message}, Manager};
 use std::{env, path::Path};
 
@@ -13,8 +13,13 @@ pub mod process;
 #[tauri::command(async)]
 async fn setup(base_path: &str) {
     let ffmpeg_path = Path::new(base_path).join("ffmpeg/");
-    let zip = download_ffmpeg(&ffmpeg_path).await.expect("Failed to download ffmpeg");
+    let ffmpeg_url = get_download_link().expect("Failed to get download link").ffmpeg;
+    println!("got download link {}", ffmpeg_url);
+    println!("downloading ffmpeg zip to {:#?}", &ffmpeg_path);
+    let zip = download_file(&ffmpeg_path, &ffmpeg_url).await.expect("Failed to download ffmpeg");
+    println!("extracting ffmpeg");
     extract_zip(zip).expect("Failed to extract ffmpeg");
+    println!("done")
 }
 
 #[tauri::command(async)]

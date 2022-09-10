@@ -48,6 +48,8 @@ fn test_file_format() {
 
 #[test]
 fn test_download_ffmpeg() {
-    let path = Path::new("C:\\Users\\Nevin\\AppData\\Roaming\\com.tauri.dev\\ffmpeg\\");
-    download_ffmpeg(path).expect("Failed to download ffmpeg");
+    let current_dir = std::env::current_dir().unwrap().join("ffmpeg/");
+    println!("{}", current_dir.display());
+    // let path = Path::new("C:\\Users\\Nevin\\AppData\\Roaming\\com.tauri.dev\\ffmpeg\\");
+    // download_ffmpeg(path).expect("Failed to download ffmpeg");
 }
