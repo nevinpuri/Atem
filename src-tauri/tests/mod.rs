@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use compressor::ffmpeg::*;
+use compressor::{ffmpeg::*, process::get_download_link};
 
 #[test]
 fn test_utils() {
@@ -46,10 +46,17 @@ fn test_file_format() {
     // assert_eq!(format_input(input), "/home/nevin/Videos/video3-8m.mp4");
 }
 
-#[test]
-fn test_download_ffmpeg() {
-    let current_dir = std::env::current_dir().unwrap().join("ffmpeg/");
-    println!("{}", current_dir.display());
+#[tokio::test]
+async fn test_download_ffmpeg() {
+    let ffmpeg_path = std::env::current_dir().unwrap().join("ffmpeg/");
+    println!("{}", ffmpeg_path.display());
+    let ffmpeg_url = get_download_link().expect("Failed to get download link").ffmpeg;
+    println!("got download link {}", ffmpeg_url);
+    println!("downloading ffmpeg zip to {:#?}", &ffmpeg_path);
+    let zip = download_file(&ffmpeg_path, &ffmpeg_url).await.expect("Failed to download ffmpeg");
+    println!("extracting ffmpeg");
+    extract_zip(zip).expect("Failed to extract ffmpeg");
+    println!("done")
     // let path = Path::new("C:\\Users\\Nevin\\AppData\\Roaming\\com.tauri.dev\\ffmpeg\\");
     // download_ffmpeg(path).expect("Failed to download ffmpeg");
 }

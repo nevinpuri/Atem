@@ -1,5 +1,6 @@
 use std::fs::{create_dir_all, File, self};
 use std::io::{copy, self, Error};
+use std::path::PathBuf;
 use reqwest;
 use std::{process::Command, path::Path};
 use std::str::from_utf8;
@@ -13,6 +14,29 @@ use crate::process::get_download_link;
 pub struct FileInfo {
     pub file_path: String,
     pub output_dir: String
+}
+
+pub struct FFmpegProcess {
+    ffmpeg_path: String,
+}
+
+impl FFmpegProcess {
+    pub fn new(base_dir: &Path) -> Self {
+        FFmpegProcess { ffmpeg_path: "undefined".to_string() }
+    }
+
+    pub fn compress(file: &Path, output: &Path) {
+    }
+
+    pub fn get_ffmpeg_path(path: &Path) -> PathBuf {
+        let ffmpeg_path = path.join("ffmpeg/");
+
+        if !ffmpeg_path.exists() {
+            panic!("ffmpeg not installed");
+        }
+
+        ffmpeg_path
+    }
 }
 
 impl FileInfo {
