@@ -1,21 +1,21 @@
-use std::fs::{create_dir_all, File, self};
-use std::io::{copy, self, Error};
-use std::path::PathBuf;
-use reqwest;
-use std::{process::Command, path::Path};
-use std::str::from_utf8;
-use std::env;
 use directories::{self, UserDirs};
-use serde::{Serialize, Deserialize};
+use reqwest;
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::fs::{self, create_dir_all, File};
+use std::io::{self, copy, Error};
+use std::path::PathBuf;
+use std::str::from_utf8;
+use std::{path::Path, process::Command};
 
 use crate::process::get_download_link;
 
 #[derive(Serialize, Deserialize)]
 
 /// file path is the full path inluding the video name, and output_dir is only the output dir
-pub struct FileInfo {
-    pub file_path: String,
-    pub output_dir: String
+pub struct OutFile {
+    pub full_path: String,
+    pub explorer_dir: String,
 }
 
 pub struct FFmpegProcess {
@@ -24,11 +24,12 @@ pub struct FFmpegProcess {
 
 impl FFmpegProcess {
     pub fn new(base_dir: &Path) -> Self {
-        FFmpegProcess { ffmpeg_path: "undefined".to_string() }
+        FFmpegProcess {
+            ffmpeg_path: "undefined".to_string(),
+        }
     }
 
-    pub fn compress(file: &Path, output: &Path) {
-    }
+    pub fn compress(file: &Path, output: &Path) {}
 
     pub fn get_ffmpeg_path(path: &Path) -> PathBuf {
         let ffmpeg_path = path.join("ffmpeg/");
@@ -41,18 +42,18 @@ impl FFmpegProcess {
     }
 }
 
-impl FileInfo {
+impl OutFile {
     pub fn new(file_path: String, output_dir: String) -> Self {
-        FileInfo {
-            file_path,
-            output_dir
+        OutFile {
+            full_path: file_path,
+            explorer_dir: output_dir,
         }
     }
 
     pub fn empty() -> Self {
-        FileInfo {
-            file_path: "".to_string(),
-            output_dir: "".to_string()
+        OutFile {
+            full_path: "".to_string(),
+            explorer_dir: "".to_string(),
         }
     }
 }
@@ -64,11 +65,11 @@ pub async fn download_file(path: &Path, link: &str) -> reqwest::Result<File> {
 
     let mut dest = {
         let fname = response
-        .url()
-        .path_segments()
-        .and_then(|segments| segments.last())
-        .and_then(|name| if name.is_empty() {None} else {Some(name)})
-        .unwrap_or("tmp.bin");
+            .url()
+            .path_segments()
+            .and_then(|segments| segments.last())
+            .and_then(|name| if name.is_empty() { None } else { Some(name) })
+            .unwrap_or("tmp.bin");
 
         println!("file to download, {}", fname);
         let fname = path.join(fname);
@@ -105,7 +106,6 @@ pub fn extract_zip(zip_file: File) -> Result<(), Error> {
             let mut outfile = fs::File::create(&outpath).unwrap();
             io::copy(&mut file, &mut outfile).unwrap();
 
-
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
@@ -121,7 +121,7 @@ pub fn extract_zip(zip_file: File) -> Result<(), Error> {
 }
 
 /// downloads ffmpeg and creates the path if needed
-pub fn get_ffmpeg_path(path: &Path) -> PathBuf {
+pub fn get_ffmpeg_path() -> PathBuf {
     let cur_dir = match env::current_dir() {
         Ok(dir) => dir,
         Err(e) => {
@@ -138,44 +138,51 @@ fn remove_whitespace(s: &str) -> String {
 
 pub fn get_duration(input: &str) -> f32 {
     let output = Command::new("ffprobe")
-        .args(
-        ["-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "csv=p=0",
-        input])
+        .args([
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "csv=p=0",
+            input,
+        ])
         // TODO: write custom error handler
         .output()
         .expect("Failed to run ffprobe to get duration")
         .stdout;
 
-        let duration = match from_utf8(&output) {
-            Ok(value) => {
-                remove_whitespace(value)
-            },
-            Err(e) => {
-                eprintln!("Error, {}", e);
-                panic!("Failed");
-            }
-        };
+    let duration = match from_utf8(&output) {
+        Ok(value) => remove_whitespace(value),
+        Err(e) => {
+            eprintln!("Error, {}", e);
+            panic!("Failed");
+        }
+    };
 
-        let parsed: f32 = duration.parse().unwrap();
+    let parsed: f32 = duration.parse().unwrap();
 
-        parsed
+    parsed
 }
 
 /// Returns in kb
 pub fn get_original_audio_rate(input: &str) -> f32 {
     let output = Command::new("ffprobe")
-        .args(
-        ["-v", "error",
-        "-select_streams", "a:0",
-        "-show_entries", "stream=bit_rate",
-        "-of", "csv=p=0",
-        input])
+        .args([
+            "-v",
+            "error",
+            "-select_streams",
+            "a:0",
+            "-show_entries",
+            "stream=bit_rate",
+            "-of",
+            "csv=p=0",
+            input,
+        ])
         .output()
         .expect("Failed to run ffprobe to get original audio rate")
         .stdout;
-    
+
     let arate = match from_utf8(&output) {
         Ok(value) => remove_whitespace(value),
         Err(e) => {
@@ -188,7 +195,10 @@ pub fn get_original_audio_rate(input: &str) -> f32 {
         return 0.00;
     }
 
-    let parsed: f32 = arate.parse::<f32>().expect("Failed to parse original audio rate") / 1024.00;
+    let parsed: f32 = arate
+        .parse::<f32>()
+        .expect("Failed to parse original audio rate")
+        / 1024.00;
 
     println!("arate: {}", arate);
 
@@ -202,7 +212,7 @@ pub fn get_target_size(audio_rate: f32, duration: f32) -> f32 {
 }
 
 pub fn is_minsize(min_size: f32, size: f32) -> bool {
-    return min_size < size
+    return min_size < size;
 }
 
 /// returns in kib/s
@@ -218,41 +228,57 @@ pub fn convert_first(input: &str, video_bitrate: f32, unix: bool) {
         "/dev/null"
     };
 
+    // make 1280:-1 conditional if video is already smaller than that
     let output = Command::new("ffmpeg")
-    .args([
-        "-y",
-        "-i", input,
-        "-c:v", "libx264",
-        "-b:v", format!("{}k", video_bitrate).as_str(),
-        "-pass", "1",
-        "-an",
-        "-f", "mp4",
-        nul
-    ])
-    .output()
-    .expect("Failed first conversion")
-    .stderr;
+        .args([
+            "-y",
+            "-i",
+            input,
+            "-c:v",
+            "libx264",
+            "-filter:v",
+            "scale=1280:-1",
+            "-b:v",
+            format!("{}k", video_bitrate).as_str(),
+            "-pass",
+            "1",
+            "-an",
+            "-f",
+            "mp4",
+            nul,
+        ])
+        .output()
+        .expect("Failed first conversion")
+        .stderr;
 
     println!("{}", from_utf8(&output).unwrap());
 }
 
 pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: &str) {
     let output = Command::new("ffmpeg")
-    .args([
-        "-i", input,
-        "-c:v", "libx264",
-        "-b:v", format!("{}k", video_bitrate).as_str(),
-        "-pass", "2",
-        "-c:a", "aac",
-        "-b:a", format!("{}k", audio_bitrate).as_str(),
-        output
-    ])
-    .output()
-    .expect("Failed first conversion")
-    .stdout;
+        .args([
+            "-i",
+            input,
+            "-c:v",
+            "libx264",
+            "-filter:v",
+            "scale=1280:-1",
+            "-b:v",
+            format!("{}k", video_bitrate).as_str(),
+            "-pass",
+            "2",
+            "-c:a",
+            "aac",
+            "-b:a",
+            format!("{}k", audio_bitrate).as_str(),
+            output,
+        ])
+        .output()
+        .expect("Failed first conversion")
+        .stdout;
 }
 
-pub fn get_output_dir(input: &str) -> FileInfo {
+pub fn get_output_dir(input: &str) -> OutFile {
     let file_path = Path::new(input);
     let user_dirs = UserDirs::new().expect("Failed to find user dirs");
 
@@ -261,26 +287,27 @@ pub fn get_output_dir(input: &str) -> FileInfo {
         _ => {
             // if video dir fails, use the parent dir of the clip
             match file_path.parent() {
-                Some(dir) => {
-                    dir.as_os_str().to_str().unwrap()
-                },
+                Some(dir) => dir.as_os_str().to_str().unwrap(),
                 // use current dir
-                _ => "."
+                _ => ".",
             }
         }
     };
 
     let file_name = match file_path.file_stem() {
-        Some(name) => {
-            name.to_str().unwrap()
-        },
+        Some(name) => name.to_str().unwrap(),
         _ => {
             panic!("No file name")
         }
     };
 
     let file_out = format!("{}-8m.mp4", file_name);
-    let output_path = Path::new(vid_dir).join(file_out).as_os_str().to_str().unwrap().to_string();
+    let output_path = Path::new(vid_dir)
+        .join(file_out)
+        .as_os_str()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     // let mut split: Vec<&str> = input.split(".").collect();
     // split.pop(); // remove file extension
@@ -295,7 +322,6 @@ pub fn get_output_dir(input: &str) -> FileInfo {
 
     // let joined = split.join(".") + ".mp4";
 
-    FileInfo::new(output_path, vid_dir.to_string())
+    OutFile::new(output_path, vid_dir.to_string())
     // output_path
-
 }

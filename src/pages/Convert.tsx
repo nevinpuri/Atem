@@ -32,7 +32,8 @@ export default function Convert() {
         targetSize: 7.5,
       });
 
-      if (!out.output_dir) {
+      if (!out.explorer_dir) {
+        setConvertStatus("Failed to convert. Check console for details");
         return;
       }
 
@@ -40,7 +41,7 @@ export default function Convert() {
 
       setConvertStatus("Successfully compressed");
       return router(
-        `/success/${Buffer.from(out.output_dir, "binary").toString("base64")}`
+        `/success/${Buffer.from(out.explorer_dir, "binary").toString("base64")}`
       );
       // open folder
     } catch (err: any) {
