@@ -1,4 +1,4 @@
-use compressor::{ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, format_input, FileInfo, get_ffmpeg_path, extract_zip, download_file}, process::get_download_link};
+use compressor::{ffmpeg::{get_duration, get_original_audio_rate, get_target_size, is_minsize, get_target_video_rate, convert_first, convert_out, get_output_dir, FileInfo, get_ffmpeg_path, extract_zip, download_file}, process::get_download_link};
 use tauri::{api::{process::Command, dialog::message}, Manager};
 use std::{env, path::Path};
 
@@ -52,7 +52,7 @@ fn convert_video(input: &str, target_size: f32, base_dir: &str) -> FileInfo {
     let path = Path::new(&base_dir).join("ffmpeg");
     let ffmpeg_path = get_ffmpeg_path(&path);
 
-    let output = format_input(input);
+    let output = get_output_dir(input);
 
     let duration = get_duration(input);
     let audio_rate = get_original_audio_rate(input);

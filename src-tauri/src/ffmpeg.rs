@@ -11,6 +11,8 @@ use serde::{Serialize, Deserialize};
 use crate::process::get_download_link;
 
 #[derive(Serialize, Deserialize)]
+
+/// file path is the full path inluding the video name, and output_dir is only the output dir
 pub struct FileInfo {
     pub file_path: String,
     pub output_dir: String
@@ -119,12 +121,15 @@ pub fn extract_zip(zip_file: File) -> Result<(), Error> {
 }
 
 /// downloads ffmpeg and creates the path if needed
-pub fn get_ffmpeg_path(path: &Path) -> &Path {
-    if !path.exists() {
-        create_dir_all(path).expect("Failed to create ffmpeg path");
-    }
+pub fn get_ffmpeg_path(path: &Path) -> PathBuf {
+    let cur_dir = match env::current_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            panic!("Faield getting working dir")
+        }
+    };
 
-    panic!("Not implemented");
+    cur_dir
 }
 
 fn remove_whitespace(s: &str) -> String {
@@ -247,7 +252,7 @@ pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: 
     .stdout;
 }
 
-pub fn format_input(input: &str) -> FileInfo {
+pub fn get_output_dir(input: &str) -> FileInfo {
     let file_path = Path::new(input);
     let user_dirs = UserDirs::new().expect("Failed to find user dirs");
 
