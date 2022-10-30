@@ -1,12 +1,13 @@
 use directories::{self, UserDirs};
 use reqwest;
 use serde::{Deserialize, Serialize};
-use std::env;
+use std::env::consts;
 use std::fs::{self, create_dir_all, File};
 use std::io::{self, copy, Error};
+use std::path::Path;
 use std::path::PathBuf;
-use std::str::from_utf8;
-use std::{path::Path, process::Command};
+use std::{env, path};
+use tauri::api::process::Command;
 
 use crate::process::get_download_link;
 
@@ -120,12 +121,18 @@ pub fn extract_zip(zip_file: File) -> Result<(), Error> {
     Ok(())
 }
 
-/// downloads ffmpeg and creates the path if needed
-pub fn get_ffmpeg_path() -> PathBuf {
+pub fn get_ff_path(exe_name: &str) -> PathBuf {
     let cur_dir = match env::current_dir() {
-        Ok(dir) => dir,
+        Ok(dir) => {
+            let exe: &str = match consts::OS {
+                "windows" => ".exe",
+                _ => "",
+            };
+
+            dir.join(format!("{}/{}{}", exe_name, exe_name, exe))
+        }
         Err(e) => {
-            panic!("Faield getting working dir")
+            panic!("Failed getting exe name dir")
         }
     };
 
@@ -136,8 +143,9 @@ fn remove_whitespace(s: &str) -> String {
     s.chars().filter(|c| !c.is_whitespace()).collect()
 }
 
-pub fn get_duration(input: &str) -> f32 {
-    let output = Command::new("ffprobe")
+pub fn get_duration(input: &str, ffprobe_path: &Path) -> f32 {
+    let output = Command::new_sidecar("ffprobe")
+        .expect("failed to find ffprobe sidecar")
         .args([
             "-v",
             "error",
@@ -152,13 +160,7 @@ pub fn get_duration(input: &str) -> f32 {
         .expect("Failed to run ffprobe to get duration")
         .stdout;
 
-    let duration = match from_utf8(&output) {
-        Ok(value) => remove_whitespace(value),
-        Err(e) => {
-            eprintln!("Error, {}", e);
-            panic!("Failed");
-        }
-    };
+    let duration = remove_whitespace(&output);
 
     let parsed: f32 = duration.parse().unwrap();
 
@@ -166,8 +168,9 @@ pub fn get_duration(input: &str) -> f32 {
 }
 
 /// Returns in kb
-pub fn get_original_audio_rate(input: &str) -> f32 {
-    let output = Command::new("ffprobe")
+pub fn get_original_audio_rate(input: &str, ffprobe_path: &Path) -> f32 {
+    let output = Command::new_sidecar("ffprobe")
+        .expect("failed to find ffprobe sidecar")
         .args([
             "-v",
             "error",
@@ -183,13 +186,7 @@ pub fn get_original_audio_rate(input: &str) -> f32 {
         .expect("Failed to run ffprobe to get original audio rate")
         .stdout;
 
-    let arate = match from_utf8(&output) {
-        Ok(value) => remove_whitespace(value),
-        Err(e) => {
-            eprintln!("{}", e);
-            panic!("Failed")
-        }
-    };
+    let arate = remove_whitespace(&output);
 
     if arate == "N/A" {
         return 0.00;
@@ -221,7 +218,7 @@ pub fn get_target_video_rate(size: f32, duration: f32, audio_rate: f32) -> f32 {
     size
 }
 
-pub fn convert_first(input: &str, video_bitrate: f32, unix: bool) {
+pub fn convert_first(input: &str, video_bitrate: f32, ffmpeg_path: &Path) {
     let nul = if env::consts::OS == "windows" {
         "nul"
     } else {
@@ -229,7 +226,8 @@ pub fn convert_first(input: &str, video_bitrate: f32, unix: bool) {
     };
 
     // make 1280:-1 conditional if video is already smaller than that
-    let output = Command::new("ffmpeg")
+    let output = Command::new_sidecar("ffmpeg")
+        .expect("failed to get ffmpeg sidecar")
         .args([
             "-y",
             "-i",
@@ -251,11 +249,18 @@ pub fn convert_first(input: &str, video_bitrate: f32, unix: bool) {
         .expect("Failed first conversion")
         .stderr;
 
-    println!("{}", from_utf8(&output).unwrap());
+    println!("{}", &output);
 }
 
-pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: &str) {
-    let output = Command::new("ffmpeg")
+pub fn convert_out(
+    input: &str,
+    video_bitrate: f32,
+    audio_bitrate: f32,
+    ffmpeg_path: &Path,
+    output: &str,
+) {
+    let output = Command::new_sidecar("ffmpeg")
+        .expect("failed to get ffmpeg sidecar")
         .args([
             "-i",
             input,
@@ -278,7 +283,7 @@ pub fn convert_out(input: &str, video_bitrate: f32, audio_bitrate: f32, output: 
         .stdout;
 }
 
-pub fn get_output_dir(input: &str) -> OutFile {
+pub fn get_output(input: &str) -> OutFile {
     let file_path = Path::new(input);
     let user_dirs = UserDirs::new().expect("Failed to find user dirs");
 

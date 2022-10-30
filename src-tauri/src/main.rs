@@ -1,8 +1,8 @@
-use compressor::{
+use atem::{
     ffmpeg::{
-        convert_first, convert_out, download_file, extract_zip, get_duration, get_ffmpeg_path,
-        get_original_audio_rate, get_output_dir, get_target_size, get_target_video_rate,
-        is_minsize, OutFile,
+        convert_first, convert_out, download_file, extract_zip, get_duration, get_ff_path,
+        get_original_audio_rate, get_output, get_target_size, get_target_video_rate, is_minsize,
+        OutFile,
     },
     process::get_download_link,
 };
@@ -67,12 +67,15 @@ fn open_file_explorer(path: &str, window: tauri::Window) {
 #[tauri::command(async)]
 fn convert_video(input: &str, target_size: f32) -> OutFile {
     // let path = Path::new(&base_dir).join("ffmpeg");
-    let ffmpeg_path = get_ffmpeg_path();
+    let ffmpeg_path = get_ff_path("ffmpeg");
+    let ffprobe_path = get_ff_path("ffprobe");
 
-    let output = get_output_dir(input);
+    println!("{} - {}", ffmpeg_path.display(), ffprobe_path.display());
 
-    let duration = get_duration(input);
-    let audio_rate = get_original_audio_rate(input);
+    let output = get_output(input);
+
+    let duration = get_duration(input, &ffprobe_path);
+    let audio_rate = get_original_audio_rate(input, &ffprobe_path);
     let min_size = get_target_size(audio_rate, duration);
 
     if !is_minsize(min_size, target_size) {
@@ -80,8 +83,14 @@ fn convert_video(input: &str, target_size: f32) -> OutFile {
     }
 
     let target_bitrate = get_target_video_rate(target_size, duration, audio_rate);
-    convert_first(input, target_bitrate, true);
-    convert_out(input, target_bitrate, audio_rate, &output.full_path);
+    convert_first(input, target_bitrate, &ffmpeg_path);
+    convert_out(
+        input,
+        target_bitrate,
+        audio_rate,
+        &ffmpeg_path,
+        &output.full_path,
+    );
 
     println!("done converting");
 

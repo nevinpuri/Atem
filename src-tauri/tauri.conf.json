@@ -7,8 +7,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "compressor",
-    "version": "0.0.0"
+    "productName": "atem",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -21,7 +21,11 @@
         "all": true,
         "execute": true,
         "sidecar": true,
-        "open": true
+        "open": true,
+        "scope": [
+          { "name": "ffmpeg/ffmpeg", "sidecar": true },
+          { "name": "ffprobe/ffprobe", "sidecar": true }
+        ]
       },
       "all": true
     },
@@ -67,9 +71,9 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 400,
         "resizable": true,
-        "title": "compressor",
+        "title": "atem",
         "width": 800
       }
     ]
