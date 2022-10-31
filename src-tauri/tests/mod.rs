@@ -27,12 +27,12 @@ fn test_convert() {
     // let audio_rate = get_original_audio_rate(input);
     // let min_size = get_target_size(audio_rate, duration);
 
-    if !is_minsize(min_size, target_size) {
-        println!("Target size too small");
-        return;
-    }
+    // if !is_minsize(min_size, target_size) {
+    //     println!("Target size too small");
+    //     return;
+    // }
 
-    let target_bitrate = get_target_video_rate(target_size, duration, audio_rate);
+    // let target_bitrate = get_target_video_rate(target_size, duration, audio_rate);
     // convert_first(input, target_bitrate, true);
     // convert_out(
     //     input,

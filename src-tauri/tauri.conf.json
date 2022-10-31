@@ -23,8 +23,8 @@
         "sidecar": true,
         "open": true,
         "scope": [
-          { "name": "ffmpeg/ffmpeg", "sidecar": true },
-          { "name": "ffprobe/ffprobe", "sidecar": true }
+          { "name": "bin/ffmpeg", "sidecar": true },
+          { "name": "bin/ffprobe", "sidecar": true }
         ]
       },
       "all": true
@@ -36,7 +36,7 @@
       "deb": {
         "depends": []
       },
-      "externalBin": [],
+      "externalBin": ["bin/ffmpeg", "bin/ffprobe"],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
