@@ -30,7 +30,9 @@ export default function Success() {
       return;
     }
 
-    await invoke("open_file_explorer", { path: outputFolder });
+    await invoke("open_file_explorer", {
+      path: Buffer.from(params.outputFolder, "base64").toString("binary"),
+    });
   };
 
   const menu = () => {

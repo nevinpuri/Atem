@@ -170,7 +170,7 @@ pub fn get_duration(input: &str, ffprobe_path: &Path) -> f32 {
 
 /// Returns in kb
 pub fn get_original_audio_rate(input: &str, ffprobe_path: &Path) -> f32 {
-    let output = Command::new_sidecar("ffprobe")
+    let out = Command::new_sidecar("ffprobe")
         .expect("failed to find ffprobe sidecar")
         .args([
             "-v",
@@ -184,14 +184,21 @@ pub fn get_original_audio_rate(input: &str, ffprobe_path: &Path) -> f32 {
             input,
         ])
         .output()
-        .expect("Failed to run ffprobe to get original audio rate")
-        .stdout;
+        .expect("Failed to run ffprobe to get original audio rate");
+
+    let output = out.stdout;
+    let err = out.stderr;
+    
+    println!("{}", output);
+    println!("{}", err);
 
     let arate = remove_whitespace(&output);
 
     if arate == "N/A" {
         return 0.00;
     }
+
+    println!("arate {}", arate);
 
     let parsed: f32 = arate
         .parse::<f32>()
@@ -220,6 +227,7 @@ pub fn get_target_video_rate(size: f32, duration: f32, audio_rate: f32) -> f32 {
 }
 
 pub fn convert_first(input: &str, video_bitrate: f32, ffmpeg_path: &Path) {
+    let temp_dir = env::temp_dir();
     let nul = if env::consts::OS == "windows" {
         "nul"
     } else {
@@ -235,6 +243,8 @@ pub fn convert_first(input: &str, video_bitrate: f32, ffmpeg_path: &Path) {
             input,
             "-c:v",
             "libx264",
+            "-passlogfile",
+            temp_dir.to_str().expect("Failed to convert temp dir to string"),
             "-filter:v",
             "scale=1280:-1",
             "-b:v",
@@ -260,6 +270,7 @@ pub fn convert_out(
     ffmpeg_path: &Path,
     output: &str,
 ) {
+    let temp_dir = env::temp_dir();
     let output = Command::new_sidecar("ffmpeg")
         .expect("failed to get ffmpeg sidecar")
         .args([
@@ -267,6 +278,8 @@ pub fn convert_out(
             input,
             "-c:v",
             "libx264",
+            "-passlogfile",
+            temp_dir.to_str().expect("Failed to convert temp dir to string"),
             "-filter:v",
             "scale=1280:-1",
             "-b:v",

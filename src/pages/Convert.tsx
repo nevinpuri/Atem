@@ -40,8 +40,10 @@ export default function Convert() {
       console.log(out);
 
       setConvertStatus("Successfully compressed");
+
+      console.log(out);
       return router(
-        `/success/${Buffer.from(out.explorer_dir, "binary").toString("base64")}`
+        `/success/${Buffer.from(out.full_path, "binary").toString("base64")}`
       );
       // open folder
     } catch (err: any) {

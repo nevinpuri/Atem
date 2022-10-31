@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use atem::{
     ffmpeg::{
         convert_first, convert_out, download_file, extract_zip, get_duration, get_ff_path,
@@ -39,6 +40,7 @@ async fn setup(base_path: &str) {
 fn open_file_explorer(path: &str, window: tauri::Window) {
     let label = window.label();
     let parent_window = window.get_window(label).unwrap();
+    println!("{}", path);
     match env::consts::OS {
         "windows" => {
             Command::new("explorer")
