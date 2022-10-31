@@ -143,6 +143,7 @@ fn remove_whitespace(s: &str) -> String {
     s.chars().filter(|c| !c.is_whitespace()).collect()
 }
 
+// copy ffmpeg-adsf to ffmpeg
 pub fn get_duration(input: &str, ffprobe_path: &Path) -> f32 {
     let output = Command::new_sidecar("ffprobe")
         .expect("failed to find ffprobe sidecar")
