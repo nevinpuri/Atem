@@ -3,7 +3,6 @@ use atem::{
     ffmpeg::{
         convert_first, convert_out, get_duration,
         get_original_audio_rate, get_output, get_target_size, get_target_video_rate, is_minsize,
-        OutFile,
     },
 };
 use std::env;
@@ -30,7 +29,7 @@ fn open_file_explorer(path: &str, window: tauri::Window) {
                 .args(["/select,", path]) // The comma after select is not a typo
                 .spawn()
                 .unwrap();
-        }
+        },
         "macos" => {
             Command::new("open")
                 .args(["-R", path]) // i don't have a mac so not 100% sure
@@ -58,6 +57,7 @@ fn convert_video(input: &str, target_size: f32) -> String {
     let min_size = get_target_size(audio_rate, duration);
 
     if !is_minsize(min_size, target_size) {
+        println!("{min_size}");
         return "".to_string();
     }
 

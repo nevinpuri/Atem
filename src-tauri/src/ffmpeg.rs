@@ -146,10 +146,12 @@ pub fn convert_first(input: &str, video_bitrate: f32) {
             nul,
         ])
         .output()
-        .expect("Failed first conversion")
-        .stderr;
+        .expect("Failed first conversion");
 
-    println!("{}", &output);
+    let err = output.stderr;
+    let out = output.stdout;
+
+    println!("{}, {}", err, out);
 }
 
 pub fn convert_out(
@@ -162,6 +164,7 @@ pub fn convert_out(
     let output = Command::new_sidecar("ffmpeg")
         .expect("failed to get ffmpeg sidecar")
         .args([
+            "-y",
             "-i",
             input,
             "-c:v",
@@ -181,8 +184,12 @@ pub fn convert_out(
             output,
         ])
         .output()
-        .expect("Failed first conversion")
-        .stdout;
+        .expect("Failed first conversion");
+
+    let err = output.stderr;
+    let out = output.stdout;
+
+    println!("{}, {}", err, out);
 }
 
 pub fn get_output(input: &str) -> String {
