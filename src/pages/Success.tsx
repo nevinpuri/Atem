@@ -1,37 +1,18 @@
-import { invoke, shell } from "@tauri-apps/api";
-import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { Buffer } from "buffer";
+import { fromBase64 } from "../utils";
 
 export default function Success() {
-  const params = useParams();
+  const { outputFolder } = useParams();
   const router = useNavigate();
 
-  const [outputFolder, setOutputFolder] = useState<string>();
-
-  useEffect(() => {
-    if (!params.outputFolder) {
-      return;
-    }
-
-    setOutputFolder(
-      Buffer.from(params.outputFolder, "base64").toString("binary")
-    );
-  }, []);
-
   const openOutputFolder = async () => {
-    if (!params.outputFolder) {
-      return;
-    }
-
-    console.log(Buffer.from(params.outputFolder, "base64").toString("binary"));
-
     if (!outputFolder) {
       return;
     }
 
     await invoke("open_file_explorer", {
-      path: Buffer.from(params.outputFolder, "base64").toString("binary"),
+      path: fromBase64(outputFolder),
     });
   };
 

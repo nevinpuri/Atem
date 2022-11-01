@@ -5,13 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { Buffer } from "buffer";
 import debounce from "lodash.debounce";
 import { appDir } from "@tauri-apps/api/path";
+import { toBase64 } from "../utils";
 
 export default function Menu() {
   const [isDrag, setIsDrag] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleNavigate = (filePath: string) => {
-    const encode = Buffer.from(filePath, "binary").toString("base64");
+    const encode = toBase64(filePath);
     navigate(`/convert/${encode}`);
   };
 
@@ -21,10 +22,6 @@ export default function Menu() {
   );
 
   useEffect(() => {
-    appDir().then((dir) => {
-      console.log(dir);
-    });
-
     let unlisten: UnlistenFn;
     let unlistenFileDrop: UnlistenFn;
     let unlistenFileDropCancelled: UnlistenFn;
@@ -57,7 +54,6 @@ export default function Menu() {
           return;
         }
 
-        console.log(event.payload[0]);
         debouncedEventHandler(event.payload[0]);
       });
     };
@@ -67,9 +63,15 @@ export default function Menu() {
     startFileDropCancelled();
 
     return function cleanup() {
-      if (unlisten && unlistenFileDrop && unlistenFileDropCancelled) {
+      if (unlisten) {
         unlisten();
+      }
+
+      if (unlistenFileDrop) {
         unlistenFileDrop();
+      }
+
+      if (unlistenFileDropCancelled) {
         unlistenFileDropCancelled();
       }
     };
@@ -94,7 +96,6 @@ export default function Menu() {
     }
 
     debouncedEventHandler(selected);
-    // handleNavigate(selected);
   };
 
   return (

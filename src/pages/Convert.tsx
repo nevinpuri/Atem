@@ -1,56 +1,42 @@
-import {
-  createRoutesFromChildren,
-  Navigate,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import { Buffer } from "buffer";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { message } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
 import debounce from "lodash.debounce";
+import { fromBase64, toBase64 } from "../utils";
 
 export default function Convert() {
   const router = useNavigate();
   const [convertStatus, setConvertStatus] = useState<string>("Compressing");
-  const params = useParams();
+  const { filePath } = useParams();
 
   const convertVideo = async () => {
     try {
-      console.log("Compressing");
-      if (!params.filePath) {
+      if (!filePath) {
         message("No file");
         return;
       }
 
-      const filePath = Buffer.from(params.filePath, "base64").toString(
-        "binary"
-      );
+      const decodedFilePath = fromBase64(filePath);
 
       const out: any = await invoke("convert_video", {
-        input: filePath,
+        input: decodedFilePath,
         targetSize: 7.5,
       });
 
-      if (!out.explorer_dir) {
+      if (!out) {
         setConvertStatus("Failed to convert. Check console for details");
         return;
       }
 
-      console.log(out);
+      setConvertStatus("Successfully converted");
 
-      setConvertStatus("Successfully compressed");
-
-      console.log(out);
-      return router(
-        `/success/${Buffer.from(out.full_path, "binary").toString("base64")}`
-      );
-      // open folder
+      return router(`/success/${toBase64(out)}`);
     } catch (err: any) {
       setConvertStatus(
         "An unexpected error has occured. Check the console for details."
       );
-      console.log(err.toString());
+      console.log(err);
     }
   };
 
@@ -58,6 +44,7 @@ export default function Convert() {
   useEffect(() => {
     debouncedEventHandler();
   }, []);
+
   return (
     <div className="h-screen flex justify-center items-center">
       <h1 className="text-white text-2xl font-bold text-center">
