@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "atem",
-    "version": "0.1.0"
+    "version": "1.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -44,7 +44,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.nevin.atem",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -73,7 +73,7 @@
         "fullscreen": false,
         "height": 400,
         "resizable": true,
-        "title": "atem",
+        "title": "Atem",
         "width": 800
       }
     ]

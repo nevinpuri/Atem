@@ -1,6 +1,16 @@
-# 8m
+# Atem
 
-A program which compresses your discord videos to under 8megs
+A program which compresses your discord videos to under 8megs. Just drag and drop a video and it will be compressed.
+
+![1](./assets/1.png)
+
+## Download
+
+Head over to the [releases](https://github.com/Nevin1901/Atem/releases) page. Linux + Mac builds coming soon.
+
+## Bugs
+
+- Sometimes videos can't be converted to under 8mb. (currently audio isn't compressed but that might be a fix)
 
 ## TODO
 
