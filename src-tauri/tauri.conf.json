@@ -11,6 +11,10 @@
     "version": "1.1.0"
   },
   "tauri": {
+    "cli": {
+      "description": "compress videos to under 8mb",
+      "args": [{ "name": "path", "index": 1, "takesValue": true }]
+    },
     "allowlist": {
       "dialog": {
         "all": true,
