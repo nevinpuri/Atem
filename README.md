@@ -25,12 +25,12 @@ First go to https://ffbinaries.com/downloads and download both ffmpeg and ffprob
 Then run `$ target=rustc -Vv | grep host | cut -f2 -d' '` to view your rust toolchain target.
 
 Extract them to the following folders:
-`project_dir/src-tauri/ffmpeg/ffmpeg-$target`
-`project_dir/src-tauri/ffprobe/ffprobe-$target`
-
-`chmod +x` both of them (if you're on linux)
+`project_dir/src-tauri/bin/ffmpeg-$target`
+`project_dir/src-tauri/bin/ffprobe-$target`
 
 where target is the output of the rust toolchain command
+
+`chmod +x` both of them (if you're on linux)
 
 then run
 
