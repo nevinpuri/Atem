@@ -22,7 +22,7 @@ export default function Convert() {
 
       const out: any = await invoke("convert_video", {
         input: decodedFilePath,
-        targetSize: 7.5,
+        targetSize: 24,
       });
 
       if (!out) {
